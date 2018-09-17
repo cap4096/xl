@@ -1,0 +1,14 @@
+#
+# An example
+#
+add := (a:int, b:int) -> (r:int):
+    r=a+b
+
+sub := (a:int, b:int) -> (r:int):
+    r=a-b
+
+abs := (a:int) -> (r:int):
+    if a>=0:
+        r=a
+    else:
+        r=-a

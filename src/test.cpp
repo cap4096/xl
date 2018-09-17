@@ -1,4 +1,5 @@
-#include "serialize.hh"
+#include "gtypes.hh"
+#include "file_store.hh"
 #include <iostream>
 
 
@@ -21,8 +22,8 @@ int main(int argc, char const *argv[])
     sv.push_back("B");
     sv.push_back("C");
     sv.push_back("D");
-    std::cout << "iv: " << to_string(iv) << "\n\n";
-    std::cout << "sv: " << to_string(sv) << "\n\n";
+    std::cout << "iv: " << dbg::dump(iv) << "\n\n";
+    std::cout << "sv: " << dbg::dump(sv) << "\n\n";
 
 
     mi[1] = "A";
@@ -37,9 +38,19 @@ int main(int argc, char const *argv[])
     ms["D"] = 4;
     ms["E"] = 5;
 
-    std::cout << "mi: " << to_string(mi) << "\n\n";
-    std::cout << "si: " << to_string(ms) << "\n\n";
+    std::cout << "mi: " << dbg::dump(mi) << "\n\n";
+    std::cout << "si: " << dbg::dump(ms) << "\n\n";
 
-    
+
+
+    FileStore s;
+
+    auto f = s.load("test_input/ex1.xl");
+
+    std::cout << "Error: " << dbg::dump(s.errorMessages) << "\n\n";
+
+    std::cout << dbg::dump(f) << "\n\n";
+
+
     return 0;
 }

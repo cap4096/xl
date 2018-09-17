@@ -1,14 +1,9 @@
 #include "file_store.hh"
 #include <stack>
 #include <fstream>
+#include <iostream>
 
 namespace {
-    struct LineResult {
-        std::vector<int> tabs;
-        int introSpaces = 0;
-        std::string line;
-    };
-
     LineResult extractLine(const std::string& line)
     {
         LineResult r;
@@ -18,7 +13,7 @@ namespace {
 
         auto beginningOfLine = true;
         auto ignoreRest = false;
-        
+
         int  column = 0;
 
         for(auto c = line.cbegin(); c!=line.cend();++c){
@@ -27,7 +22,7 @@ namespace {
             switch(*c){
                 case ' ':   if(beginningOfLine) { r.introSpaces++; } break;
                 case '\t':  // Handle tabs!
-                    r.tabs.push_back(column); 
+                    r.tabs.push_back(column);
                     break;
 
                 case '#':  // Handle comment
@@ -37,7 +32,7 @@ namespace {
                 default:
                     if(beginningOfLine) { start = c; }
                     beginningOfLine = false;
-                    finish = c;
+                    finish = c+1;
                     break;
             }
             column++;
@@ -67,7 +62,7 @@ void FileStore::addErrorMessage(std::shared_ptr<File> file, int line, int column
 }
 
 
-void FileStore::load(const std::string& filePath) {
+std::shared_ptr<File> FileStore::load(const std::string& filePath) {
     auto file = std::make_shared<File>(filePath);
     std::stack<int> colStack; colStack.push(0);
     std::ifstream inFile(filePath);
@@ -91,12 +86,74 @@ void FileStore::load(const std::string& filePath) {
             if(lr.introSpaces>colStack.top()){
                 colStack.push(lr.introSpaces);
             }else{
-                colStack.pop();
-                if(lr.introSpaces!=colStack.top()){
-                    addErrorMessage(file, lineNo, lr.introSpaces, std::string("Invalid indentation."));
+                while(lr.introSpaces>colStack.top()){
+                    if(colStack.size()>0){
+                        colStack.pop();
+                    }
+                    if(lr.introSpaces!=colStack.top()){
+                        addErrorMessage(file, lineNo, lr.introSpaces, std::string("Invalid indentation."));
+                    }
                 }
             }
-        }            
+        }
+
+        Line l;
+
+        l.level = colStack.size()-1;
+        l.line  = lr.line;
+
+        file->lines.push_back(l);
     }
+
+    return file;
 }
 
+
+
+namespace dbg {
+    std::string dump(const Line& line) {
+        return
+            "{ level: " + dump(line.level) +
+            ", line: " + dump(line.line) +
+            " }";
+    }
+
+    std::string dump(const FileLocation& loc){
+        return
+            "{ file: " + dump(loc.file->filePath) +
+            ", line: " + dump(loc.line) +
+            ", column: " + dump(loc.column) +
+            " }";
+    }
+
+    std::string dump(const File& file) {
+        return
+            "{ filePath: " + dump(file.filePath) +
+            ", lines: " + dump(file.lines) +
+            " }";
+    }
+
+    std::string dump(std::shared_ptr<File> file){
+        return
+            "{ filePath: " + dump(file->filePath) +
+            ", lines: " + dump(file->lines) +
+            " }";
+    }
+
+
+    std::string dump(const ErrorMessage& m) {
+        return
+            "{ location: " + dump(m.location) +
+            ", message: " + dump(m.message) +
+            "  }";
+    }
+
+    std::string dump(const LineResult& lr){
+        return
+           "{ introSpaces: " + dump(lr.introSpaces) +
+           ", tabs: " + dump(lr.tabs) +
+           ", line: " + dump(lr.line) +
+            "  }";
+    }
+
+}
