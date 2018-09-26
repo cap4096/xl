@@ -18,6 +18,6 @@ clean:
 
 
 $(OBJ_DIR)/%.o:%.cpp
-	g++ -MMD -std=c++17 -g -O0 -c -o $@ $<
+	g++ -MMD -std=c++17 -g -O0 -Wall -Wextra -c -o $@ $<
 
 -include $(OBJ_FILES:.o=.d)
